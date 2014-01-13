@@ -5,11 +5,11 @@
 #New page on confluence with vimeo link
 #Include keywords/names/date format nicely
 
-require 'rubygems'
-require 'bundler'
+#require 'rubygems'
+#require 'bundler'
 require 'vimeo'
 require 'yaml'
-require 'pp'
+
 
 def prompt()
   print "> "
@@ -22,16 +22,11 @@ def login()
   @user = config["username"]
   @pass = config["password"]
 
-  #Vimeo API Info
   @consumerKey = config["consumerkey"]
   @consumerSecret = config["consumersecret"]
   @token = config["token"]
   @tokenSecret = config["tokensecret"]
- 
-pp @consumerKey 
-pp @consumerSecret 
-pp @token 
-pp @tokenSecret
+
 end
 
 #Gets the name of event
@@ -60,7 +55,7 @@ def event_name()
   elsif @name.downcase == "d"
 	  @name = "Demos"
   elsif @name.downcase == "u"
-  	  @name = "UX Design Review"
+  	  @name = "Design Review"
   elsif @name.downcase == "m"
 	  @name = "Misc"
   else
