@@ -1,3 +1,5 @@
+#!/usr/bin/env ruby
+
 ##Purpose of this:
 #Record location of video on disk
 #Upload to vimeo script with this info
@@ -5,16 +7,17 @@
 #New page on confluence with vimeo link
 #Include keywords/names/date format nicely
 
-#require 'rubygems'
-#require 'bundler'
+
 require 'vimeo'
 require 'yaml'
-
+require 'rubygems'
+require 'rails'
 
 def prompt()
   print "> "
 end
 
+#Pulls auth and login info from etc/config.yaml and assigns to vars
 def login()
   config = YAML.load(File.read('etc/config.yaml'))
 
@@ -26,7 +29,6 @@ def login()
   @consumerSecret = config["consumersecret"]
   @token = config["token"]
   @tokenSecret = config["tokensecret"]
-
 end
 
 #Gets the name of event
@@ -37,40 +39,30 @@ def event_name()
   puts "(D)emos"
   puts "(M)isc"
   puts "(U)X Design Review"
-  
+
   login()
   prompt; @name = gets.chomp
 
-
-
   while @name.empty?  || @name.nil?
-   puts "You gotta gimmie something to work with.  What event did you just watch?"
-   prompt; @name = gets.chomp
-  end
-  
-  if @name.downcase == "a"
-	  @name = "All Hands"
-  elsif @name.downcase == "b"
-	  @name = "Big Picture"
-  elsif @name.downcase == "d"
-	  @name = "Demos"
-  elsif @name.downcase == "u"
-  	  @name = "Design Review"
-  elsif @name.downcase == "m"
-	  @name = "Misc"
-  else
-	  puts "What did you just say to me? (A)ll Hands. (B)ig Picture. (D)emos. (M)isc. (U)X Design Weekly."
-          prompt; @name = gets.chomp
-  end
- 
-  puts "You said #{@name}, correct? (y/n)"
-  correct_name = gets.chomp
- 
-  if correct_name == "y" || correct_name == "Y"
-    event_date()
+    puts "You gotta gimmie something to work with.  What event did you just watch?"
+    prompt; @name = gets.chomp
   end
 
-  event_name()
+  if @name.downcase == "a"
+    @name = "All Hands"
+  elsif @name.downcase == "b"
+    @name = "Big Picture"
+  elsif @name.downcase == "d"
+    @name = "Demos"
+  elsif @name.downcase == "u"
+    @name = "Design Review"
+  elsif @name.downcase == "m"
+    @name = "Misc"
+  else
+    puts "What did you just say to me? (A)ll Hands. (B)ig Picture. (D)emos. (M)isc. (U)X Design Weekly."
+    prompt; @name = gets.chomp
+  end
+  event_date()
 end
 
 #Assumes today's date is date of video.  I'll expand this later for flexibility
@@ -84,71 +76,56 @@ end
 def event_topic()
   puts "What was the topic of the talk? (i.e. Burgundy, Q3 OKRs,  PE3)"
   prompt; @topic = gets.chomp
-  
+
   while @topic.empty?  || @topic.nil?
-   puts "Did you pay attention? What did they talk about?"
-   prompt; @topic = gets.chomp
+    puts "Did you pay attention? What did they talk about?"
+    prompt; @topic = gets.chomp
   end
-  
-  puts "They talked about: #{@topic}, correct? (y/n)"
-  correct_topic = gets.chomp
- 
-  if correct_topic == "y" || correct_topic == "Y"
-    event_speaker()
-  end
-  event_topic()
+  event_speaker()
 end
 
 #Gets the speaker. Will add flexibility of xtra speakers later.
 def event_speaker()
   puts "Who was the main speaker?"
   prompt; @speaker = gets.chomp
-  
-  while @speaker.empty?  || @speaker.nil?
-   puts "Who spoke?? Go find out their name."
-   prompt; @speaker = gets.chomp
-  end
-  
-  puts "So #{@speaker} was the speaker? (y/n)"
-  correct_speaker = gets.chomp
 
-  if correct_speaker == "y" || correct_speaker == "Y"
-    event_keywords()
+  while @speaker.empty?  || @speaker.nil?
+    puts "Who spoke?? Go find out their name."
+    prompt; @speaker = gets.chomp
   end
-  event_speaker()
+  event_keywords()
 end
 
 #Gets the keywords.
 def event_keywords()
   puts "What are some keywords, seperated by commas? (i.e. Docs, javascript, PPM)"
   prompt; @keywords = gets.chomp
-  
+
   while @keywords.empty?  || @keywords.nil?
-   puts "Give me at least one keyword."
-   prompt; @keywords = gets.chomp
+    puts "Give me at least one keyword."
+    prompt; @keywords = gets.chomp
   end
   event_recap()
 end
 
 def event_recap()
- puts "So let me get this straight.  On #{@date}'s #{@name},  #{@speaker} talked about #{@topic} which included #{@keywords}? (y/n)"
+  puts "So let me get this straight.  On #{@date}'s #{@name},  #{@speaker} talked about #{@topic} which included #{@keywords}? (y/n)"
   prompt; confirm = gets.chomp
-  
+
   if confirm.downcase == "y"
     @title = "#{@name}" + " #{@date}" + " #{@topic}" + " #{@speaker}"
   else
     event_name()
   end
-
- uploader()
+  uploader()
 end
 
 
 #Finds and uploads file
 def uploader()
   puts "Make sure the file you want to upload is in ~/Desktop/Video Uploader/Videos/"
-  puts "What is the filename, including extension?"
-  prompt; filename = gets.chomp
+
+  filename = pickfile()
 
   file = "Videos/" + filename
   puts "Ok, wait a minute while I do some magic."
@@ -166,35 +143,67 @@ end
 
 #Confluence magic time!
 def confluence_magic
-@link = "https://vimeo.com/#{@video_id}"
-@content = "#{@video_id}"
+  @link = "https://vimeo.com/#{@video_id}"
+  @content = "#{@video_id}"
 
 
-#sorting script
-if @name == "Demos"
-   @parent == "Demos 2014"
+  #sorting script
+  if @name == "Demos"
+    @parent == "Demos 2014"
   else
-   @parent = @name
-end
+    @parent = @name
+  end
 
-    @confluencePage = %x[java -jar `dirname $0`/confluence-cli-3.7.0/lib/confluence-cli-3.7.0.jar --server https://confluence.puppetlabs.com --user #{@user} --password #{@pass} --action addPage --space VID --parent "#{@parent}"  --title "#{@title}" --content "{widget:height=321|width=500|url=https://vimeo.com/#{@video_id}}" --labels "#{@keywords}"]
+  @confluencePage = %x[java -jar `dirname $0`/confluence-cli-3.7.0/lib/confluence-cli-3.7.0.jar --server https://confluence.puppetlabs.com --user #{@user} --password #{@pass} --action addPage --space VID --parent "#{@parent}"  --title "#{@title}" --content "{widget:height=321|width=500|url=https://vimeo.com/#{@video_id}}" --labels "#{@keywords}"]
 
-    puts "Video Posted! Confluence Page ID:  #{@confluencePage.split(//).last(9).join("").to_s}"
+  puts "Video Posted! Confluence Page ID:  #{@confluencePage.split(//).last(9).join("").to_s}"
 
-    @confluenceID = @confluencePage.split(//).last(9).join("").to_s.chomp
-    @link = "https://confluence.puppetlabs.com/pages/viewpage.action?pageId=#{@confluenceID}"
-  
-    @updateLink = %x[java -jar `dirname $0`/confluence-cli-3.7.0/lib/confluence-cli-3.7.0.jar --server https://confluence.puppetlabs.com --user #{@user} --password #{@pass} --action modifyPage --space VID --title "#{@parent}" --content "[#{@title}|#{@link}]"]
+  @confluenceID = @confluencePage.split(//).last(9).join("").to_s.chomp
+  @link = "https://confluence.puppetlabs.com/pages/viewpage.action?pageId=#{@confluenceID}"
 
-
-
-the_end()
+  @updateLink = %x[java -jar `dirname $0`/confluence-cli-3.7.0/lib/confluence-cli-3.7.0.jar --server https://confluence.puppetlabs.com --user #{@user} --password #{@pass} --action modifyPage --space VID --title "#{@parent}" --content "[#{@title}|#{@link}]"]
+    the_end()
 end
 
 #If it all worked
 def the_end
-puts "Hooray! It worked!"
-exit
+#  while true
+#    puts "Confluence page linked!  We are almost done!  Would you like to:"
+#    puts "1. Erase the original file."
+#    puts "2. Clear out the folder."
+#    puts "3. Exit"
+#    response = gets.chomp
+#    case response
+#    when "1"
+#      File.delete(files[choice]) if File.exist?(files[choice])
+#      puts "Deleted!!!"
+#    when "2"
+      #clear out folder
+#    when "3"
+#      exit
+#    end
+#  end
+  #
+  puts "Huzzah it worked!"
+end
+
+def pickfile() 
+  while true
+  files = Dir.entries("Videos")
+  files.each_with_index {|item, index|
+    next if item == "." || item == ".."
+    puts "#{index-1}) #{item}"
+  }
+
+  puts "Pick the number corresponding the file you wish to upload"
+  choice = gets.chomp.to_i+1
+  puts "You picked #{files[choice]}. Are you sure? y/n "
+  confirm = gets.chomp
+  if confirm.downcase == 'y' 
+    then
+    return files[choice]
+  end
+end
 end
 
 event_name()
