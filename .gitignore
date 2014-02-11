@@ -2,4 +2,4 @@ etc/config.yaml
 .bundle/
 Gemfile.lock
 *.swp
-
+Videos/
