@@ -8,10 +8,10 @@
 #Include keywords/names/date format nicely
 
 
+#require 'rubygems'
+#require 'rails'
 require 'vimeo'
 require 'yaml'
-require 'rubygems'
-require 'rails'
 
 def prompt()
   print "> "
@@ -53,7 +53,7 @@ def event_name()
   elsif @name.downcase == "b"
     @name = "Big Picture"
   elsif @name.downcase == "d"
-    @name = "Demos"
+    @name = "Demos 2014"
   elsif @name.downcase == "u"
     @name = "Design Review"
   elsif @name.downcase == "m"
@@ -148,11 +148,7 @@ def confluence_magic
 
 
   #sorting script
-  if @name == "Demos"
-    @parent == "Demos 2014"
-  else
     @parent = @name
-  end
 
   @confluencePage = %x[java -jar `dirname $0`/confluence-cli-3.7.0/lib/confluence-cli-3.7.0.jar --server https://confluence.puppetlabs.com --user #{@user} --password #{@pass} --action addPage --space VID --parent "#{@parent}"  --title "#{@title}" --content "{widget:height=321|width=500|url=https://vimeo.com/#{@video_id}}" --labels "#{@keywords}"]
 
@@ -167,23 +163,6 @@ end
 
 #If it all worked
 def the_end
-#  while true
-#    puts "Confluence page linked!  We are almost done!  Would you like to:"
-#    puts "1. Erase the original file."
-#    puts "2. Clear out the folder."
-#    puts "3. Exit"
-#    response = gets.chomp
-#    case response
-#    when "1"
-#      File.delete(files[choice]) if File.exist?(files[choice])
-#      puts "Deleted!!!"
-#    when "2"
-      #clear out folder
-#    when "3"
-#      exit
-#    end
-#  end
-  #
   puts "Huzzah it worked!"
 end
 
@@ -203,7 +182,7 @@ def pickfile()
     then
     return files[choice]
   end
-end
+  end
 end
 
 event_name()
