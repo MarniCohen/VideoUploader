@@ -12,6 +12,7 @@
 #require 'rails'
 require 'vimeo'
 require 'yaml'
+require 'tempfile'
 
 def prompt()
   print "> "
