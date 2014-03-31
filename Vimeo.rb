@@ -51,14 +51,19 @@ def event_name()
 
   if @name.downcase == "a"
     @name = "All Hands"
+    @nameparent = "All Hands"
   elsif @name.downcase == "b"
-    @name = "Big Picture"
+    @name = "Big Picture" 
+    @nameparent = "Big Picture"
   elsif @name.downcase == "d"
-    @name = "Demos 2014"
+    @name = "Demos"
+    @nameparent = "Demos 2014"
   elsif @name.downcase == "u"
     @name = "Design Review"
+    @nameparent = "Design Review"
   elsif @name.downcase == "m"
     @name = "Misc"
+    @nameparent = "Misc"
   else
     puts "What did you just say to me? (A)ll Hands. (B)ig Picture. (D)emos. (M)isc. (U)X Design Weekly."
     prompt; @name = gets.chomp
@@ -151,14 +156,14 @@ def confluence_magic
   #sorting script
     @parent = @name
 
-  @confluencePage = %x[java -jar `dirname $0`/confluence-cli-3.7.0/lib/confluence-cli-3.7.0.jar --server https://confluence.puppetlabs.com --user #{@user} --password #{@pass} --action addPage --space VID --parent "#{@parent}"  --title "#{@title}" --content "{widget:height=321|width=500|url=https://vimeo.com/#{@video_id}}" --labels "#{@keywords}"]
+  @confluencePage = %x[java -jar `dirname $0`/confluence-cli-3.7.0/lib/confluence-cli-3.7.0.jar --server https://confluence.puppetlabs.com --user #{@user} --password #{@pass} --action addPage --space VID --parent "#{@nameparent}"  --title "#{@title}" --content "{widget:height=321|width=500|url=https://vimeo.com/#{@video_id}}" --labels "#{@keywords}"]
 
   puts "Video Posted! Confluence Page ID:  #{@confluencePage.split(//).last(9).join("").to_s}"
 
   @confluenceID = @confluencePage.split(//).last(9).join("").to_s.chomp
   @link = "https://confluence.puppetlabs.com/pages/viewpage.action?pageId=#{@confluenceID}"
 
-  @updateLink = %x[java -jar `dirname $0`/confluence-cli-3.7.0/lib/confluence-cli-3.7.0.jar --server https://confluence.puppetlabs.com --user #{@user} --password #{@pass} --action modifyPage --space VID --title "#{@parent}" --content "[#{@title}|#{@link}]"]
+  @updateLink = %x[java -jar `dirname $0`/confluence-cli-3.7.0/lib/confluence-cli-3.7.0.jar --server https://confluence.puppetlabs.com --user #{@user} --password #{@pass} --action modifyPage --space VID --title "#{@nameparent}" --content "[#{@title}|#{@link}]"]
     the_end()
 end
 
