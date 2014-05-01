@@ -129,7 +129,7 @@ end
 
 #Finds and uploads file
 def uploader()
-  puts "Make sure the file you want to upload is in Video Uploader/Videos/"
+  puts "Make sure the file you want to upload is in ~/Desktop/Video Uploader/Videos/"
 
   filename = pickfile()
 
