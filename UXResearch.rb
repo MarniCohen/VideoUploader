@@ -76,9 +76,7 @@ end
 def uploader()
   puts "Make sure the file you want to upload is in ~/Box Sync/UX/VideoUploader/Videos"
   filename = pickfile()
-  puts "!!!!"
   file = "Videos/" + filename
-  puts "????"
   puts "Ok, wait a minute while I do some magic."
   upload = Vimeo::Advanced::Upload.new(@consumerKey, @consumerSecret, :token => @token, :secret => @tokenSecret)
 
