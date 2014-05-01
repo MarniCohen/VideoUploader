@@ -1,4 +1,4 @@
-require 'rails'
+#require 'rails'
 require 'vimeo'
 require 'yaml'
 require 'tempfile'
