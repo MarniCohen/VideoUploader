@@ -65,7 +65,7 @@ def event_recap()
   prompt; confirm = gets.chomp
   
   if confirm.downcase == "y"
-    @title = "#{@name}" + " #{@date}" + " #{@topic}" + " #{@speaker}"
+    @title = "#{@topic}" + " - #{@speaker}"
   else
     event_name()
   end
