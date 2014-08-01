@@ -8,7 +8,7 @@
 #Include keywords/names/date format nicely
 
 
-#require 'rubygems'
+require 'rubygems'
 #require 'rails'
 require 'vimeo'
 require 'yaml'
@@ -133,7 +133,7 @@ def uploader()
 
   filename = pickfile()
 
-  file = "/Videos/" + filename
+  file = "Videos/" + filename
   puts "Ok, wait a minute while I do some magic."
   upload = Vimeo::Advanced::Upload.new(@consumerKey, @consumerSecret, :token => @token, :secret => @tokenSecret)
 
@@ -144,7 +144,7 @@ def uploader()
   puts "Vimeo Video ID: #{@video_id}"
   setTitle.set_title("#{@video_id}", "#{@title}")
 
-  confluence_magic()
+#  confluence_magic()
 end
 
 #Confluence magic time!
@@ -156,20 +156,21 @@ def confluence_magic
   #sorting script
     @parent = @name
 
-  @confluencePage = %x[java -jar `dirname $0`/confluence-cli-3.7.0/lib/confluence-cli-3.7.0.jar --server https://confluence.puppetlabs.com --user #{@user} --password #{@pass} --action addPage --space VID --parent "#{@nameparent}"  --title "#{@title}" --content "{widget:height=321|width=500|url=https://vimeo.com/#{@video_id}}" --labels "#{@keywords}"]
+  @confluencePage = %x[java -jar `dirname $0`/confluence-cli-3.9.0/lib/confluence-cli-3.9.0.jar --server https://confluence.puppetlabs.com --user #{@user} --password #{@pass} --action addPage --space VID --parent "#{@nameparent}"  --title "#{@title}" --content "{widget:height=321|width=500|url=https://vimeo.com/#{@video_id}}" --labels "#{@keywords}"]
 
   puts "Video Posted! Confluence Page ID:  #{@confluencePage.split(//).last(9).join("").to_s}"
 
   @confluenceID = @confluencePage.split(//).last(9).join("").to_s.chomp
   @link = "https://confluence.puppetlabs.com/pages/viewpage.action?pageId=#{@confluenceID}"
 
-  @updateLink = %x[java -jar `dirname $0`/confluence-cli-3.7.0/lib/confluence-cli-3.7.0.jar --server https://confluence.puppetlabs.com --user #{@user} --password #{@pass} --action modifyPage --space VID --title "#{@nameparent}" --content "[#{@title}|#{@link}]"]
+  @updateLink = %x[java -jar `dirname $0`/confluence-cli-3.9.0/lib/confluence-cli-3.9.0.jar --server https://confluence.puppetlabs.com --user #{@user} --password #{@pass} --action modifyPage --space VID --title "#{@nameparent}" --content "[#{@title}|#{@link}]"]
     the_end()
 end
 
 #If it all worked
 def the_end
   puts "Huzzah it worked!"
+  @link = "Paste this into a Confluence page to embed: https://vimeo.com/#{@video_id}"
 end
 
 def pickfile() 
