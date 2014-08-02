@@ -145,6 +145,7 @@ def uploader()
   setTitle.set_title("#{@video_id}", "#{@title}")
 
 #  confluence_magic()
+    the_end()
 end
 
 #Confluence magic time!
