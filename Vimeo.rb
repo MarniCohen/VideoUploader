@@ -172,6 +172,7 @@ end
 def the_end
   puts "Huzzah it worked!"
   @link = "Paste this into a Confluence page to embed: https://vimeo.com/#{@video_id}"
+puts @link
 end
 
 def pickfile() 
