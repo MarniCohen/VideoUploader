@@ -87,7 +87,8 @@ def uploader()
   puts "Vimeo Video ID: #{@video_id}"
   setTitle.set_title("#{@video_id}", "#{@title}")
 
-  confluence_magic()
+  #confluence_magic()
+  the_end()
 end
 
 #Confluence magic time!
