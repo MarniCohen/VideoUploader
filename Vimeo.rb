@@ -40,6 +40,7 @@ def event_name()
   puts "(D)emos"
   puts "(M)isc"
   puts "(U)X Design Review"
+  puts "(T)SE"
 
   login()
   prompt; @name = gets.chomp
@@ -64,8 +65,11 @@ def event_name()
   elsif @name.downcase == "m"
     @name = "Misc"
     @nameparent = "Misc"
+  elsif @name.downcase == "t"
+    @name = "TSE"
+    @nameparent = "Misc"
   else
-    puts "What did you just say to me? (A)ll Hands. (B)ig Picture. (D)emos. (M)isc. (U)X Design Weekly."
+    puts "What did you just say to me? (A)ll Hands. (B)ig Picture. (D)emos. (M)isc. (T)SE. (U)X Design Weekly."
     prompt; @name = gets.chomp
   end
   event_date()
