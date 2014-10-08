@@ -1,4 +1,3 @@
-    the_end()
 #require 'rails'
 require 'vimeo'
 require 'yaml'
