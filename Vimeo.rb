@@ -1,185 +1,183 @@
-#!/usr/bin/env ruby
-
-##Purpose of this:
-#Record location of video on disk
-#Upload to vimeo script with this info
-#Pull new vimeo link for video
-#New page on confluence with vimeo link
-#Include keywords/names/date format nicely
-
-
-require 'rubygems'
-#require 'rails'
-require 'vimeo'
 require 'yaml'
+require 'confluence_api'
+require 'vimeo'
 require 'tempfile'
+require 'erb'
 
 def prompt()
   print "> "
 end
 
-#Pulls auth and login info from etc/config.yaml and assigns to vars
-def login()
-  config = YAML.load(File.read('etc/config.yaml'))
-
-  #Confluence Login
-  @user = config["username"]
-  @pass = config["password"]
-
+def login(config)
   @consumerKey = config["consumerkey"]
   @consumerSecret = config["consumersecret"]
   @token = config["token"]
   @tokenSecret = config["tokensecret"]
 end
 
-#Gets the name of event
-def event_name()
-  puts "What is the event?"
+def start()
+  config = YAML.load(File.read('etc/config.yaml'))
+  login(config)
+  client = Confluence.client config
+  list_event_name_options()
+  prompt; name = gets.chomp
+
+  title = "omfg work"
+  vimeo_id = "https://vimeo.com/109058142"
+  keywords = "np"
+
+  name         = sort_event_name(name)
+  parent       = sort_event_parent(name)
+  parent_id    = get_parent_id(parent, client)
+  topic        = get_event_topic(name)
+  date         = get_event_date()
+  speaker      = get_event_speaker()
+  keywords     = get_event_keywords()
+  title        = event_recap(date, parent_id, name, speaker, topic, keywords)
+#  vimeo_id     = upload_video_to_vimeo(title)
+  id           = create_confluence_page(parent_id, title, vimeo_id, keywords, client) 
+  set_confluence_labels(id, keywords)
+  
+  #  update_confluence_page(link, title, parent)
+end
+
+def list_event_name_options()
+  puts "What is the name of the event?"
   puts "(A)ll Hands"
   puts "(B)ig Picture"
   puts "(D)emos"
   puts "(M)isc"
   puts "(U)X Design Review"
   puts "(T)SE"
+end
 
-  login()
-  prompt; @name = gets.chomp
-
-  while @name.empty?  || @name.nil?
+def sort_event_name(name)
+  while name.empty? || name.nil?
     puts "You gotta gimmie something to work with.  What event did you just watch?"
-    prompt; @name = gets.chomp
+    prompt; name = gets.chomp
   end
 
-  if @name.downcase == "a"
-    @name = "All Hands"
-    @nameparent = "All Hands"
-  elsif @name.downcase == "b"
-    @name = "Big Picture" 
-    @nameparent = "Big Picture"
-  elsif @name.downcase == "d"
-    @name = "Demos"
-    @nameparent = "Demos 2014"
-  elsif @name.downcase == "u"
-    @name = "Design Review"
-    @nameparent = "Design Review"
-  elsif @name.downcase == "m"
-    @name = "Misc"
-    @nameparent = "Misc"
-  elsif @name.downcase == "t"
-    @name = "TSE"
-    @nameparent = "Misc"
+  case name.downcase
+  when "a"
+    name = "All Hands"
+  when "b"  
+    name = "Big Picture"
+  when "d"
+    name = "Demos"
+  when "u"
+    name = "Design Review"
+  when "m"
+    name = "Misc"
+  when "t"
+    name = "TSE"
   else
     puts "What did you just say to me? (A)ll Hands. (B)ig Picture. (D)emos. (M)isc. (T)SE. (U)X Design Weekly."
-    prompt; @name = gets.chomp
+    prompt; name = gets.chomp
   end
-  event_date()
+  name
 end
 
-#Assumes today's date is date of video.  I'll expand this later for flexibility
-def event_date()
+def sort_event_parent(name)
+  case name
+  when "All Hands"
+    name_parent = "All Hands"
+  when "Big Picture"
+    name_parent = "Big Picture"
+  when "Demos"
+    name_parent = "Demos 2014"
+  when "Design Review"
+    name_parent = "Design Review"
+  when "Misc"
+    name_parent = "Misc"
+  when "TSE"
+    name_parent = "Misc"
+  else
+    puts "What did you just say to me? (A)ll Hands. (B)ig Picture. (D)emos. (M)isc. (T)SE. (U)X Design Weekly."
+    prompt; name = gets.chomp
+    sort_event_name(name)
+  end
+  name_parent
+end
+
+def get_parent_id(name_parent, client)
+  parent_id = client.get_id_from_title_and_space(name_parent, "VID")
+  #parent_id = parent_id["results"].first["id"]
+end
+
+def get_event_topic(name)
+  if name == "All Hands"
+    topic = ""
+  else
+    puts "What was the topic of the talk? (i.e. Burgundy, Q3 OKRs,  PE3)"
+    prompt; topic = gets.chomp
+
+    while topic.empty?  || topic.nil? && name != "All Hands"
+      puts "Did you pay attention? What did they talk about?"
+      prompt; topic = gets.chomp
+    end
+  end
+  topic
+end
+
+def get_event_date()
   time = Time.now
-  @date = time.month.to_s + "/" + time.day.to_s + "/" + time.year.to_s
-  event_topic()
+  date = time.month.to_s + "/" + time.day.to_s + "/" + time.year.to_s
 end
 
-#Gets the topic of event, this goes in the title with the name (i.e. Big Picture - PE3)
-def event_topic()
-  puts "What was the topic of the talk? (i.e. Burgundy, Q3 OKRs,  PE3)"
-  prompt; @topic = gets.chomp
-
-  while @topic.empty?  || @topic.nil?
-    puts "Did you pay attention? What did they talk about?"
-    prompt; @topic = gets.chomp
-  end
-  event_speaker()
-end
-
-#Gets the speaker. Will add flexibility of xtra speakers later.
-def event_speaker()
+def get_event_speaker()
   puts "Who was the main speaker?"
-  prompt; @speaker = gets.chomp
+  prompt; speaker = gets.chomp
 
-  while @speaker.empty?  || @speaker.nil?
+  while speaker.empty?  || speaker.nil?
     puts "Who spoke?? Go find out their name."
-    prompt; @speaker = gets.chomp
+    prompt; speaker = gets.chomp
   end
-  event_keywords()
+  speaker
 end
 
-#Gets the keywords.
-def event_keywords()
-  puts "What are some keywords, seperated by commas? (i.e. Docs, javascript, PPM)"
-  prompt; @keywords = gets.chomp
+def get_event_keywords()
+  puts "What are some keywords, seperated by commas? (i.e. Docs, javascript, PPM).  Note that the spaces turn into seperate keywords (e.g. big picture becomes 'big' 'picture')"
+  prompt; keywords = gets.chomp
 
-  while @keywords.empty?  || @keywords.nil?
+  while keywords.empty?  || keywords.nil?
     puts "Give me at least one keyword."
-    prompt; @keywords = gets.chomp
+    prompt; keywords = gets.chomp
   end
-  event_recap()
+  keywords = keywords.split(',')
 end
 
-def event_recap()
-  puts "So let me get this straight.  On #{@date}'s #{@name},  #{@speaker} talked about #{@topic} which included #{@keywords}? (y/n)"
+def event_recap (date, name_parent, name, speaker, topic, keywords)
+ puts "So let me get this straight.  On #{date}'s #{name}, #{speaker} talked about #{topic} which included #{keywords}? (y/n)"
   prompt; confirm = gets.chomp
 
   if confirm.downcase == "y"
-    @title = "#{@name}" + " #{@date}" + " #{@topic}" + " #{@speaker}"
+    title = "#{name}" + " #{date}" + " #{topic}" + " #{speaker}"
   else
-    event_name()
+    start()  
   end
-  uploader()
+  title
 end
 
-
-#Finds and uploads file
-def uploader()
+def upload_video_to_vimeo(title)
   puts "Make sure the file you want to upload is in ~/Desktop/Video Uploader/Videos/"
 
-  filename = pickfile()
-
+  filename = select_video_file()
   file = "Videos/" + filename
   puts "Ok, wait a minute while I do some magic."
-  upload = Vimeo::Advanced::Upload.new(@consumerKey, @consumerSecret, :token => @token, :secret => @tokenSecret)
 
-  setTitle = Vimeo::Advanced::Video.new(@consumerKey, @consumerSecret, :token => @token, :secret => @tokenSecret)
+  video = Vimeo::Advanced::Upload.new(@consumerKey, @consumerSecret, :token => @token, :secret => @tokenSecret)
+ vimeo_title = Vimeo::Advanced::Video.new(@consumerKey, @consumerSecret, :token => @token, :secret => @tokenSecret)
 
-  video = upload.upload(file)
-  @video_id = video["ticket"]["video_id"]
-  puts "Vimeo Video ID: #{@video_id}"
-  setTitle.set_title("#{@video_id}", "#{@title}")
-
-#  confluence_magic()
-    the_end()
+  uploaded_video = video.upload(file)
+  video_id = uploaded_video["ticket"]["video_id"]
+  puts "Vimeo Video ID: #{video_id}"
+  vimeo_link = "https://vimeo.com/#{video_id}"
+  puts "Vimeo Link: " + vimeo_link
+  vimeo_title.set_title("#{video_id}", "#{title}")
+  vimeo_link
 end
 
-#Confluence magic time!
-def confluence_magic
-  @link = "https://vimeo.com/#{@video_id}"
-  @content = "#{@video_id}"
-
-
-  #sorting script
-    @parent = @name
-
-  @confluencePage = %x[java -jar `dirname $0`/confluence-cli-3.9.0/lib/confluence-cli-3.9.0.jar --server https://confluence.puppetlabs.com --user #{@user} --password #{@pass} --action addPage --space VID --parent "#{@nameparent}"  --title "#{@title}" --content "{widget:height=321|width=500|url=https://vimeo.com/#{@video_id}}" --labels "#{@keywords}"]
-
-  puts "Video Posted! Confluence Page ID:  #{@confluencePage.split(//).last(9).join("").to_s}"
-
-  @confluenceID = @confluencePage.split(//).last(9).join("").to_s.chomp
-  @link = "https://confluence.puppetlabs.com/pages/viewpage.action?pageId=#{@confluenceID}"
-
-  @updateLink = %x[java -jar `dirname $0`/confluence-cli-3.9.0/lib/confluence-cli-3.9.0.jar --server https://confluence.puppetlabs.com --user #{@user} --password #{@pass} --action modifyPage --space VID --title "#{@nameparent}" --content "[#{@title}|#{@link}]"]
-    the_end()
-end
-
-#If it all worked
-def the_end
-  puts "Huzzah it worked!"
-  @link = "Paste this into a Confluence page to embed: https://vimeo.com/#{@video_id}"
-puts @link
-end
-
-def pickfile() 
+def select_video_file()
   while true
   files = Dir.entries("Videos")
   files.each_with_index {|item, index|
@@ -191,11 +189,32 @@ def pickfile()
   choice = gets.chomp.to_i+1
   puts "You picked #{files[choice]}. Are you sure? y/n "
   confirm = gets.chomp
-  if confirm.downcase == 'y' 
+  if confirm.downcase == 'y'
     then
     return files[choice]
   end
   end
 end
 
-event_name()
+def create_confluence_page(parent, title, link, keywords, client) 
+  space = "VID"
+  vimeo_link = link
+  erb = ERB.new(File.read("vimeo_content.erb"), nil, '-<>')
+  content = erb.result(binding)
+  id = client.create_page(title, space, content, parent)
+  puts "Created confluence page. Id # " + id
+  confluence_link = "https://confluence.puppetlabs.com/pages/viewpage.action?pageId=#{id}"
+  id
+end
+
+def  update_confluence_page(link, title, parent)
+#get content, edit page with content+link  
+puts "update function goes here but I gotta write it first but its like get content of page and then update new info + old content"
+end
+
+def set_confluence_labels(id, label_array)
+  client.add_labels(id, label_array)
+end
+
+start()
+

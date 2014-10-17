@@ -1,23 +1,9 @@
 source "https://rubygems.org"
 
-gem "httparty", ">= 0.4.5"
-gem "httpclient", ">= 2.1.5.2"
-gem "json", ">= 1.1.9"
-gem "multipart-post", ">= 1.0.1"
-gem "oauth", ">= 0.4.3"
+ruby '2.1.1'
 
-group :development do
-  gem "bundler", "~> 1.0"
-  gem "rake", "0.9.6"
-  gem "rdoc", "~> 3.12"
-  gem "jeweler", "~> 1.8.4"
-end
-
-group :test do
-  gem "ruby-prof", ">= 0.9.2"
-  gem "shoulda", ">= 2.11.3"
-  gem "coveralls", require: false
-  gem "test-unit", ">= 0"
-  gem "fakeweb", ">= 1.2.6"
-  gem "mocha", ">= 0.9.8"
-end
+gem 'json'
+gem 'rack'
+gem 'confluence_api', :git => 'https://github.com/puppetlabs/ruby_confluence_api', :branch => 'master',  :require => false
+gem 'google_drive', '>=0.3.8'
+gem 'vimeo'
