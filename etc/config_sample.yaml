@@ -1,0 +1,8 @@
+---
+:username: "email@something.com"
+:password: "secretasfuck123"
+:url: "http://thisisaurl.com"
+consumerkey: "123"
+consumersecret: "321"
+token: "123"
+tokensecret: "1337"

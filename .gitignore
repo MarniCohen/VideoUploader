@@ -1,5 +1,5 @@
-etc/config.yaml
-.bundle/
-Gemfile.lock
+config.yaml
+*.swo
 *.swp
-Videos/
+Videos/AllHands.m4v
+Videos/*
