@@ -23,7 +23,7 @@ def start()
   prompt; name = gets.chomp
 
   title = "omfg work"
-  vimeo_id = "https://vimeo.com/109058142"
+#  vimeo_id = "https://vimeo.com/109058142"
   keywords = "np"
 
   name         = sort_event_name(name)
@@ -34,7 +34,7 @@ def start()
   speaker      = get_event_speaker()
   keywords     = get_event_keywords()
   title        = event_recap(date, parent_id, name, speaker, topic, keywords)
-#  vimeo_id     = upload_video_to_vimeo(title)
+  vimeo_id     = upload_video_to_vimeo(title)
   id           = create_confluence_page(parent_id, title, vimeo_id, keywords, client) 
   set_confluence_labels(id, keywords)
   
@@ -169,6 +169,8 @@ def upload_video_to_vimeo(title)
  vimeo_title = Vimeo::Advanced::Video.new(@consumerKey, @consumerSecret, :token => @token, :secret => @tokenSecret)
 
   uploaded_video = video.upload(file)
+  File.rename file, "Videos/Archived/" + filename
+
   video_id = uploaded_video["ticket"]["video_id"]
   puts "Vimeo Video ID: #{video_id}"
   vimeo_link = "https://vimeo.com/#{video_id}"
