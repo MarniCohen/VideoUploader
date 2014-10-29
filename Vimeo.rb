@@ -34,7 +34,7 @@ def start()
   id           = create_confluence_page(parent_id, title, vimeo_id, keywords, client) 
   set_confluence_labels(id, keywords)
   
-  #  update_confluence_page(link, title, parent)
+    update_confluence_page(link, title, parent_id)
 end
 
 def list_event_name_options()
@@ -199,15 +199,19 @@ def create_confluence_page(parent, title, link, keywords, client)
   vimeo_link = link
   erb = ERB.new(File.read("vimeo_content.erb"), nil, '-<>')
   content = erb.result(binding)
+  puts "Content being posted"
+  puts content
   id = client.create_page(title, space, content, "editor", parent)
   puts "Created confluence page. Id # " + id
   confluence_link = "https://confluence.puppetlabs.com/pages/viewpage.action?pageId=#{id}"
   id
 end
 
-def  update_confluence_page(link, title, parent)
-#get content, edit page with content+link  
-puts "update function goes here but I gotta write it first but its like get content of page and then update new info + old content"
+def  update_confluence_page(link, title, parent_id)
+  content = get_editor_from_page_id(parent_id)
+  erb = ERB.new(File.read("confluence_link.erb"), nil, '-<>')
+  new_content = erb.result(binding)
+  content = new_content + content
 end
 
 def set_confluence_labels(id, label_array)
