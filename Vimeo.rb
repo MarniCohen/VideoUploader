@@ -22,10 +22,6 @@ def start()
   list_event_name_options()
   prompt; name = gets.chomp
 
-  title = "omfg work"
-#  vimeo_id = "https://vimeo.com/109058142"
-  keywords = "np"
-
   name         = sort_event_name(name)
   parent       = sort_event_parent(name)
   parent_id    = get_parent_id(parent, client)
@@ -203,7 +199,7 @@ def create_confluence_page(parent, title, link, keywords, client)
   vimeo_link = link
   erb = ERB.new(File.read("vimeo_content.erb"), nil, '-<>')
   content = erb.result(binding)
-  id = client.create_page(title, space, content, parent)
+  id = client.create_page(title, space, content, "editor", parent)
   puts "Created confluence page. Id # " + id
   confluence_link = "https://confluence.puppetlabs.com/pages/viewpage.action?pageId=#{id}"
   id
