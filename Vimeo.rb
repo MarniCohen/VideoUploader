@@ -33,8 +33,8 @@ def start()
   vimeo_id     = upload_video_to_vimeo(title)
   id           = create_confluence_page(parent_id, title, vimeo_id, keywords, client) 
   set_confluence_labels(id, keywords)
-  
-    update_confluence_page(link, title, parent_id)
+  done         = done(parent, id)
+  #  update_confluence_page(link, title, parent_id)
 end
 
 def list_event_name_options()
@@ -45,6 +45,7 @@ def list_event_name_options()
   puts "(M)isc"
   puts "(U)X Design Review"
   puts "(T)SE"
+  puts "U(X) Research"
 end
 
 def sort_event_name(name)
@@ -66,8 +67,10 @@ def sort_event_name(name)
     name = "Misc"
   when "t"
     name = "TSE"
+  when "x"
+    name = "UX Research"
   else
-    puts "What did you just say to me? (A)ll Hands. (B)ig Picture. (D)emos. (M)isc. (T)SE. (U)X Design Weekly."
+    puts "What did you just say to me? (A)ll Hands. (B)ig Picture. (D)emos. (M)isc. (T)SE. (U)X Design Weekly, U(X) Research"
     prompt; name = gets.chomp
   end
   name
@@ -87,8 +90,10 @@ def sort_event_parent(name)
     name_parent = "Misc"
   when "TSE"
     name_parent = "Misc"
+  when "UX Research"
+    name_parent = "UX Research Videos"
   else
-    puts "What did you just say to me? (A)ll Hands. (B)ig Picture. (D)emos. (M)isc. (T)SE. (U)X Design Weekly."
+    puts "What did you just say to me? (A)ll Hands. (B)ig Picture. (D)emos. (M)isc. (T)SE. (U)X Design Weekly, U(X) Research."
     prompt; name = gets.chomp
     sort_event_name(name)
   end
@@ -96,8 +101,11 @@ def sort_event_parent(name)
 end
 
 def get_parent_id(name_parent, client)
+  if name_parent == "UX Research Videos"
+  parent_id = client.get_id_from_title_and_space(name_parent, "UX")
+  else
   parent_id = client.get_id_from_title_and_space(name_parent, "EH")
-  #parent_id = parent_id["results"].first["id"]
+  end
 end
 
 def get_event_topic(name)
@@ -194,16 +202,18 @@ def select_video_file()
   end
 end
 
-def create_confluence_page(parent, title, link, keywords, client) 
-  space = "EH"
-  vimeo_link = link
+def create_confluence_page(parent, title, vimeo_link, keywords, client) 
+  if parent == "UX Research Videos"
+    space = "UX"
+  else
+    space = "EH"
+  end
   erb = ERB.new(File.read("vimeo_content.erb"), nil, '-<>')
   content = erb.result(binding)
   puts "Content being posted"
   puts content
   id = client.create_page(title, space, content, "editor", parent)
   puts "Created confluence page. Id # " + id
-  confluence_link = "https://confluence.puppetlabs.com/pages/viewpage.action?pageId=#{id}"
   id
 end
 
@@ -216,6 +226,14 @@ end
 
 def set_confluence_labels(id, label_array)
   client.add_labels(id, label_array)
+end
+
+def done(parent, id)
+  confluence_link = "https://confluence.puppetlabs.com/pages/viewpage.action?pageId=#{id}"
+  puts "Hooray! It worked!"
+  puts "Here is the generated link, it may take a few minutes to finish converting: " + confluence_link
+  system('say "donuts"')
+  exit
 end
 
 start()
