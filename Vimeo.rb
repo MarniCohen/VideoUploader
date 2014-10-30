@@ -96,7 +96,7 @@ def sort_event_parent(name)
 end
 
 def get_parent_id(name_parent, client)
-  parent_id = client.get_id_from_title_and_space(name_parent, "VID")
+  parent_id = client.get_id_from_title_and_space(name_parent, "EH")
   #parent_id = parent_id["results"].first["id"]
 end
 
@@ -195,7 +195,7 @@ def select_video_file()
 end
 
 def create_confluence_page(parent, title, link, keywords, client) 
-  space = "VID"
+  space = "EH"
   vimeo_link = link
   erb = ERB.new(File.read("vimeo_content.erb"), nil, '-<>')
   content = erb.result(binding)
