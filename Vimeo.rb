@@ -104,7 +104,7 @@ def get_parent_id(name_parent, client)
   if name_parent == "UX Research Videos"
   parent_id = client.get_id_from_title_and_space(name_parent, "UX")
   else
-  parent_id = client.get_id_from_title_and_space(name_parent, "EH")
+  parent_id = client.get_id_from_title_and_space(name_parent, "VID")
   end
 end
 
