@@ -31,7 +31,7 @@ def start()
   keywords     = get_event_keywords()
   title        = event_recap(date, parent_id, name, speaker, topic, keywords)
   vimeo_id     = upload_video_to_vimeo(title)
-  id           = create_confluence_page(parent_id, title, vimeo_id, keywords, client) 
+  id           = create_confluence_page(parent, parent_id, title, vimeo_id, keywords, client) 
   set_confluence_labels(id, keywords)
   done         = done(parent, id)
   #  update_confluence_page(link, title, parent_id)
@@ -202,17 +202,17 @@ def select_video_file()
   end
 end
 
-def create_confluence_page(parent, title, vimeo_link, keywords, client) 
+def create_confluence_page(parent, parent_id, title, vimeo_link, keywords, client) 
   if parent == "UX Research Videos"
     space = "UX"
   else
-    space = "EH"
+    space = "VID"
   end
   erb = ERB.new(File.read("vimeo_content.erb"), nil, '-<>')
   content = erb.result(binding)
   puts "Content being posted"
   puts content
-  id = client.create_page(title, space, content, "editor", parent)
+  id = client.create_page(title, space, content, "editor", parent_id)
   puts "Created confluence page. Id # " + id
   id
 end
