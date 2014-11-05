@@ -225,7 +225,7 @@ def  update_confluence_page(link, title, parent_id)
 end
 
 def set_confluence_labels(id, label_array)
-  client.add_labels(id, label_array)
+  #client.add_labels(id, label_array)
 end
 
 def done(parent, id)
