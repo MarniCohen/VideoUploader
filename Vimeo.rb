@@ -22,15 +22,16 @@ def start()
   list_event_name_options()
   prompt; name = gets.chomp
 
+  file         = select_file
+  date         = set_date(file)
   name         = sort_event_name(name)
   parent       = sort_event_parent(name)
   parent_id    = get_parent_id(parent, client)
   topic        = get_event_topic(name)
-  date         = get_event_date()
-  speaker      = get_event_speaker()
-  keywords     = get_event_keywords()
+  speaker      = get_event_speaker
+  keywords     = get_event_keywords
   title        = event_recap(date, parent_id, name, speaker, topic, keywords)
-  vimeo_id     = upload_video_to_vimeo(title)
+  vimeo_id     = upload_video_to_vimeo(file, title)
   id           = create_confluence_page(parent, parent_id, title, vimeo_id, keywords, client) 
   set_confluence_labels(id, keywords)
   done         = done(parent, id)
@@ -123,11 +124,6 @@ def get_event_topic(name)
   topic
 end
 
-def get_event_date()
-  time = Time.now
-  date = time.month.to_s + "/" + time.day.to_s + "/" + time.year.to_s
-end
-
 def get_event_speaker()
   puts "Who was the main speaker?"
   prompt; speaker = gets.chomp
@@ -162,18 +158,23 @@ def event_recap (date, name_parent, name, speaker, topic, keywords)
   title
 end
 
-def upload_video_to_vimeo(title)
+def select_file
   puts "Make sure the file you want to upload is in ~/Desktop/Video Uploader/Videos/"
+  @filename = select_video_file()
+  file = "Videos/" + @filename
+end
 
-  filename = select_video_file()
-  file = "Videos/" + filename
-  puts "Ok, wait a minute while I do some magic."
+def set_date(file)
+  date = File.mtime(file)
+  date = date.month.to_s + "/" + date.day.to_s + "/" + date.year.to_s
+end
 
+def upload_video_to_vimeo(file, title)
   video = Vimeo::Advanced::Upload.new(@consumerKey, @consumerSecret, :token => @token, :secret => @tokenSecret)
- vimeo_title = Vimeo::Advanced::Video.new(@consumerKey, @consumerSecret, :token => @token, :secret => @tokenSecret)
+  vimeo_title = Vimeo::Advanced::Video.new(@consumerKey, @consumerSecret, :token => @token, :secret => @tokenSecret)
 
   uploaded_video = video.upload(file)
-  File.rename file, "Videos/Archived/" + filename
+  File.rename file, "Videos/Archived/" + @filename
 
   video_id = uploaded_video["ticket"]["video_id"]
   puts "Vimeo Video ID: #{video_id}"
