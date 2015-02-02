@@ -175,6 +175,8 @@ def set_date(file)
 end
 
 def upload_video_to_vimeo(file, title)
+  puts "Please wait while I upload the file"
+
   video = Vimeo::Advanced::Upload.new(@consumerKey, @consumerSecret, :token => @token, :secret => @tokenSecret)
   vimeo_title = Vimeo::Advanced::Video.new(@consumerKey, @consumerSecret, :token => @token, :secret => @tokenSecret)
 
