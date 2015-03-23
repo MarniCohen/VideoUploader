@@ -87,7 +87,7 @@ def sort_event_parent(name)
   when "Big Picture"
     name_parent = "Big Picture"
   when "Demos"
-    name_parent = "Demos 2014"
+    name_parent = "Demos 2015"
   when "Design Review"
     name_parent = "Design Review"
   when "Misc"
