@@ -35,7 +35,6 @@ def start()
   id           = create_confluence_page(parent, parent_id, title, vimeo_id, keywords, client) 
   set_confluence_labels(id, keywords)
   done         = done(parent, id)
-  #  update_confluence_page(link, title, parent_id)
 end
 
 def list_event_name_options()
@@ -223,13 +222,6 @@ def create_confluence_page(parent, parent_id, title, vimeo_url, keywords, client
   id = client.create_page(title, space, content, "storage", parent_id)
   puts "Created confluence page. Id # " + id
   id
-end
-
-def  update_confluence_page(link, title, parent_id)
-  content = get_editor_from_page_id(parent_id)
-  erb = ERB.new(File.read("confluence_link.erb"), nil, '-<>')
-  new_content = erb.result(binding)
-  content = new_content + content
 end
 
 def set_confluence_labels(id, label_array)
