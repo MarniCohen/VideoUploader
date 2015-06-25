@@ -210,17 +210,17 @@ def select_video_file()
   end
 end
 
-def create_confluence_page(parent, parent_id, title, vimeo_link, keywords, client) 
+def create_confluence_page(parent, parent_id, title, vimeo_url, keywords, client) 
   if parent == "UX Research Videos"
     space = "UX"
   else
     space = "VID"
   end
-  erb = ERB.new(File.read("vimeo_content.erb"), nil, '-<>')
+  erb = ERB.new(File.read("vimeo_content2.erb"), nil, '-<>')
   content = erb.result(binding)
   puts "Content being posted"
   puts content
-  id = client.create_page(title, space, content, "editor", parent_id)
+  id = client.create_page(title, space, content, "storage", parent_id)
   puts "Created confluence page. Id # " + id
   id
 end
